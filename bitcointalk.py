@@ -14,11 +14,45 @@ import re
 import sys
 import time
 import unittest
+import nltk
+import pandas
 
 baseUrl = "https://bitcointalk.org/index.php"
 countRequested = 0
 interReqTime = 2
 lastReqTime = None
+
+nltk.download('stopwords')
+sr = nltk.corpus.stopwords.words('english')
+print "Getting word sentiments."
+lmdict = pandas.read_excel(os.path.join(os.getcwd(), 'LoughranMcDonald_MasterDictionary_2014.xlsx'))
+neg_words = lmdict.loc[lmdict.Negative != 0, 'Word'].str.lower().unique()
+pos_words = lmdict.loc[lmdict.Positive != 0, 'Word'].str.lower().unique()
+print "Done getting word sentiments."
+
+def computeSentiment(text):
+    # Tokenize and remove stop words
+    tokens = []
+    for t in nltk.regexp_tokenize(text.lower(), '[a-z]+'):
+        if t not in sr:
+            tokens.append(t)
+    tokens[:10]
+    
+    # Count the number of positive and negative words.
+    pos_count = 0
+    neg_count = 0
+    for t in tokens:
+        if t in pos_words:
+            pos_count += 1
+        elif t in neg_words:
+            neg_count += 1
+            
+    # Compute sentiment
+    if (pos_count + neg_count) > 0:
+        sentiment = (float(pos_count) - float(neg_count))/(float(pos_count) + (neg_count))
+    else:
+        sentiment = 0
+    return sentiment
 
 
 def _request(payloadString):
@@ -56,6 +90,11 @@ def requestTopicPage(topicId, messageOffset=0):
     """Method for requesting a topic page."""
     """CAVEAT: Note that a single request will return only 20 messages."""
     return _request("topic={0}.{1}".format(topicId, messageOffset))
+
+
+def requestTopicPageAll(topicId):
+    """Method for requesting a topic page return ALL messages."""
+    return _request("topic={0}.0;all".format(topicId))
 
 
 def parseBoardPage(html):
@@ -215,6 +254,7 @@ def parseTopicPage(html, todaysDate=datetime.utcnow().date()):
     firstPostClass = None
     posts = docRoot.cssselect(
         "form#quickModForm>table.bordercolor>tr")
+    first = True
     for post in posts:
         if firstPostClass is None:
             firstPostClass = post.attrib["class"]
@@ -241,7 +281,11 @@ def parseTopicPage(html, todaysDate=datetime.utcnow().date()):
             # Parse label information about the post
             subj = innerPost.cssselect(
                 "td.td_headerandpost>table>tr>td>div.subject>a")[0]
-            m['subject'] = subj.text
+
+            if first:
+                data['subject'] = subj.text
+                first = False
+
             m['link'] = subj.attrib['href']
             m['id'] = long(m['link'].split('#msg')[-1])
 
@@ -261,14 +305,8 @@ def parseTopicPage(html, todaysDate=datetime.utcnow().date()):
             # Extract the content
             corePost = innerPost.cssselect("div.post")[0]
             m['content'] = lxml.html.tostring(corePost).strip()[18:-6]
-            m['content_no_html'] = corePost.text_content()
-            for child in corePost.iterchildren():
-                if (child.tag == "div" and 'class' in child.attrib and
-                    (child.attrib['class'] == 'quoteheader' or
-                        child.attrib['class'] == 'quote')):
-                    corePost.remove(child)
-            m['content_no_quote'] = lxml.html.tostring(corePost).strip()[18:-6]
-            m['content_no_quote_no_html'] = corePost.text_content()
+
+            m['sentiment'] = computeSentiment(m['content'])
 
             messages.append(m)
 

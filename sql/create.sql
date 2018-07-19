@@ -4,12 +4,9 @@ CREATE TABLE IF NOT EXISTS message (
     topic_position INTEGER,
     member INTEGER,
     post_time TIMESTAMP,
-    subject TEXT,
     link TEXT,
     content TEXT,
-    content_no_html TEXT,
-    content_no_quote TEXT,
-    content_no_quote_no_html TEXT,
+    sentiment REAL,
     db_update_time TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
     PRIMARY KEY (sid)
 );
@@ -22,6 +19,7 @@ CREATE TABLE IF NOT EXISTS topic (
     sid INTEGER,
     name VARCHAR(255),
     board INTEGER,
+    subject TEXT,
     num_pages INTEGER,
     count_read INTEGER,
     db_update_time TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,

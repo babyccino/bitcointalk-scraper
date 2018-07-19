@@ -20,9 +20,7 @@ tables = {
 }
 
 # Pull in postgres configuration information
-dbcFile = open(
-    "{0}/.pgpass".format(os.path.dirname(os.path.abspath(__file__))),
-    'r')
+dbcFile = open(os.path.join(os.getcwd(), "pgpass.conf"), "r")
 dbcRaw = dbcFile.readline().strip().split(':')
 dbcParams = {
     'database': dbcRaw[2],

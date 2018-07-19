@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{10842eb4-f782-41bd-8b17-ce902557163a}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>scrape_boards.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>Global|PythonCore|2.7</InterpreterId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="bitcointalk.py" />
+    <Compile Include="memoizer.py" />
+    <Compile Include="pg.py" />
+    <Compile Include="scrape_boards.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="example\board_5.600.html" />
+    <Content Include="example\board_74.html" />
+    <Content Include="example\profile_12.html" />
+    <Content Include="example\topic_14.html" />
+    <Content Include="example\topic_602041.12400.html" />
+    <Content Include="sql\create.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="example" />
+    <Folder Include="sql\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|2.7" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

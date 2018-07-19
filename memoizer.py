@@ -39,7 +39,7 @@ entityFunctions = {
         'selector': pg.selectMember
     },
     'topic': {
-        'requestor': bitcointalk.requestTopicPage,
+        'requestor': bitcointalk.requestTopicPageAll,
         'parser': bitcointalk.parseTopicPage,
         'inserter': _insertTopicPage,
         'selector': pg.selectTopic
@@ -78,7 +78,7 @@ def _scrape(entity, entityId):
         return entityFunctions[entity]['selector'](entityId)
     else:
         html = entityFunctions[entity]['requestor'](entityId)
-        _saveToFile(html, entity, entityId)
+        # _saveToFile(html, entity, entityId)
         datum = entityFunctions[entity]['parser'](html)
         entityFunctions[entity]['inserter'](datum)
         memo[entityPlural].add(entityId)
@@ -94,7 +94,7 @@ def scrapeTopicIds(boardId, pageNum):
     """Scrape topic IDs from a board page. Will not store values."""
     offset = (pageNum-1)*40
     html = bitcointalk.requestBoardPage(boardId, offset)
-    _saveToFile(html, "boardpage", "{0}.{1}".format(boardId, offset))
+    # _saveToFile(html, "boardpage", "{0}.{1}".format(boardId, offset))
     data = bitcointalk.parseBoardPage(html)
     data = data['topic_ids']
     return data
@@ -110,7 +110,7 @@ def scrapeMessages(topicId, pageNum):
     """CAVEAT: Messages are not memoized."""
     offset = (pageNum-1)*20
     html = bitcointalk.requestTopicPage(topicId, offset)
-    _saveToFile(html, "topicpage", "{0}.{1}".format(topicId, offset))
+    # _saveToFile(html, "topicpage", "{0}.{1}".format(topicId, offset))
     data = bitcointalk.parseTopicPage(html)
     data = data['messages']
     pg.insertMessages(data)
