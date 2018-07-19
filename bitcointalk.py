@@ -24,11 +24,9 @@ lastReqTime = None
 
 nltk.download('stopwords')
 sr = nltk.corpus.stopwords.words('english')
-print "Getting word sentiments."
 lmdict = pandas.read_excel(os.path.join(os.getcwd(), 'LoughranMcDonald_MasterDictionary_2014.xlsx'))
 neg_words = lmdict.loc[lmdict.Negative != 0, 'Word'].str.lower().unique()
 pos_words = lmdict.loc[lmdict.Positive != 0, 'Word'].str.lower().unique()
-print "Done getting word sentiments."
 
 def computeSentiment(text):
     # Tokenize and remove stop words

@@ -14,7 +14,7 @@ boardId = 1
 def scrapeBoardPage(boardPageNum):
     logging.info(">Scraping page {0}...".format(boardPageNum))
     topicIds = memoizer.scrapeTopicIds(boardId, boardPageNum)
-    for topicId in tqdm(topicIds, total=len(topicIds)):
+    for topicId in topicIds:
         logging.info(">>Starting scrape of topic ID {0}...".format(topicId))
         try:
             topic = memoizer.scrapeTopic(topicId)
@@ -28,10 +28,9 @@ def scrapeBoardPage(boardPageNum):
         # if the number of pages is less than 25 then they would have showed up in one page
         # and already been scraped. Otherwise it must be done page by page
         if topic['num_pages'] <= 25:
-
             continue
         else:
-            for topicPageNum in tqdm(range(1, topic['num_pages'] + 1), topic['num_pages']):
+            for topicPageNum in range(1, topic['num_pages'] + 1):
                 logging.info(">>>Scraping page {0}...".format(topicPageNum))
                 messages = memoizer.scrapeMessages(topic['id'], topicPageNum)
                 for message in messages:
@@ -42,8 +41,6 @@ def scrapeBoardPage(boardPageNum):
     logging.info(">Done with page {0}.".format(boardPageNum))
 
 if __name__ == '__main__':
-
-
     logging.basicConfig(
         filename="output.log",
         level=logging.INFO,
