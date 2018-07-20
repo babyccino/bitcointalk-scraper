@@ -12,6 +12,10 @@
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId>Global|PythonCore|2.7</InterpreterId>
+    <InterpreterArguments>
+    </InterpreterArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <CommandLineArguments>--boards discussion</CommandLineArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -20,6 +24,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="bitcointalk.py" />
+    <Compile Include="forumlist.py" />
     <Compile Include="memoizer.py" />
     <Compile Include="pg.py" />
     <Compile Include="scrape_boards.py" />

@@ -22,14 +22,13 @@ countRequested = 0
 interReqTime = 2
 lastReqTime = None
 
-#nltk.download('stopwords')
-#sr = nltk.corpus.stopwords.words('english')
-#lmdict = pandas.read_excel(os.path.join(os.getcwd(), 'LoughranMcDonald_MasterDictionary_2014.xlsx'))
-#neg_words = lmdict.loc[lmdict.Negative != 0, 'Word'].str.lower().unique()
-#pos_words = lmdict.loc[lmdict.Positive != 0, 'Word'].str.lower().unique()
+nltk.download('stopwords')
+sr = nltk.corpus.stopwords.words('english')
+lmdict = pandas.read_excel(os.path.join(os.getcwd(), 'LoughranMcDonald_MasterDictionary_2014.xlsx'))
+neg_words = lmdict.loc[lmdict.Negative != 0, 'Word'].str.lower().unique()
+pos_words = lmdict.loc[lmdict.Positive != 0, 'Word'].str.lower().unique()
 
 def computeSentiment(text):
-    return 1
     # Tokenize and remove stop words
     tokens = []
     for t in nltk.regexp_tokenize(text.lower(), '[a-z]+'):
@@ -48,7 +47,7 @@ def computeSentiment(text):
             
     # Compute sentiment
     if (pos_count + neg_count) > 0:
-        sentiment = (float(pos_count) - float(neg_count))/(float(pos_count) + (neg_count))
+        sentiment = float(pos_count - neg_count)/float(pos_count + neg_count)
     else:
         sentiment = 0
     return sentiment

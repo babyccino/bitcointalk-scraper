@@ -96,8 +96,8 @@ def _scrape(entity, entityId):
 
 def scrapeBoard(boardId):
     """Scrape information on the specified board."""
-    print "Beginning scrape of board ID...".format(boardId)
-    logging.info("Beginning scrape of board ID...".format(boardId))
+    print "Beginning scrape of board ID {}...".format(boardId)
+    logging.info("Beginning scrape of board ID {}...".format(boardId))
 
     board = _scrape('board', boardId)
     count = board['num_pages']
@@ -107,7 +107,10 @@ def scrapeBoard(boardId):
     print "Getting data from {} pages equalling ~{} topics.".format(count, count*40)
         
     for i in tqdm(range(1, board['num_pages'] + 1), total=count):
-        scrapeBoardPage(boardId, i)
+        try:
+            scrapeBoardPage(boardId, i)
+        except Exception as e:
+            logging.exception(">> Unhandled exception at page {}".format(i))
 
 
 def scrapeBoardPage(boardId, boardPageNum):
