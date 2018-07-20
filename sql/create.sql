@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS message (
     member INTEGER,
     post_time TIMESTAMP,
     link TEXT,
-    content TEXT,
+    content_no_quote_no_html TEXT,
     sentiment REAL,
     db_update_time TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
     PRIMARY KEY (sid)

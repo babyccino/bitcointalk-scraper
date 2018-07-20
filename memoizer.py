@@ -6,6 +6,9 @@ import os
 import pg
 import time
 import unittest
+import logging
+from tqdm import tqdm
+from requests.exceptions import RequestException
 
 memo = {
     'boards': set(),
@@ -13,6 +16,11 @@ memo = {
     'topics': set()
 }
 
+logging.basicConfig(
+    filename="output.log",
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s:%(message)s',
+    datefmt='%m/%d/%Y %I:%M:%S %p')
 
 def _insertBoardPage(data):
     """Insert just the board."""
@@ -22,8 +30,9 @@ def _insertBoardPage(data):
 
 def _insertTopicPage(data):
     """Insert data as topic and messages and splice off messages."""
-    pg.insertMessages(data.pop('messages'))
+    pg.insertMessages(data.pop("messages"))
     pg.insertTopic(data)
+
 
 entityFunctions = {
     'board': {
@@ -87,10 +96,59 @@ def _scrape(entity, entityId):
 
 def scrapeBoard(boardId):
     """Scrape information on the specified board."""
-    return _scrape('board', boardId)
+    print "Beginning scrape of board ID...".format(boardId)
+    logging.info("Beginning scrape of board ID...".format(boardId))
+
+    board = _scrape('board', boardId)
+    count = board['num_pages']
+
+    logging.info("Found {0} topic pages in board...".format(count))
+
+    print "Getting data from {} pages equalling ~{} topics.".format(count, count*40)
+        
+    for i in tqdm(range(1, board['num_pages'] + 1), total=count):
+        scrapeBoardPage(boardId, i)
 
 
-def scrapeTopicIds(boardId, pageNum):
+def scrapeBoardPage(boardId, boardPageNum):
+    logging.info(">Scraping page {0}...".format(boardPageNum))
+    try:
+        topicIDs = scrapeTopicIDs(boardId, boardPageNum)
+    except RequestException as e:
+        logging.exception(">>Could not request URL for board {0} at page {1},:".format(boardId, boardPageNum))
+        return
+
+    for topicID in tqdm(topicIDs, total=len(topicIDs)):
+        logging.info(">>Starting scrape of topic ID {0}...".format(topicID))
+        try:
+            topic = scrapeTopic(topicID)
+        except RequestException as e:
+            logging.exception(">>Could not request URL for topic {0}:".format(topicID))
+            continue
+
+        numPages = topic['num_pages']
+
+        logging.info(">>Found {0} message pages in topic...".format(
+            numPages))
+        # if the number of pages is less than 25 then they would have showed up in one page
+        # and already been scraped. Otherwise it must be done page by page
+        if numPages <= 25:
+            continue
+        else:
+            for topicPageNum in range(1, numPages + 1):
+                logging.info(">>>Scraping page {0}...".format(topicPageNum))
+                try:
+                    scrapeMessages(topicID, topicPageNum)
+                except RequestException as e:
+                    logging.exception(">>Could not request URL for topic {0} at page {1}:".format(topic['id'], topicPageNum))
+                    continue
+
+                logging.info(">>>Done with page {0}.".format(topicPageNum))
+            logging.info(">>Done scraping topic ID {0}.".format(topicID))
+    logging.info(">Done with page {0}.".format(boardPageNum))
+
+
+def scrapeTopicIDs(boardId, pageNum):
     """Scrape topic IDs from a board page. Will not store values."""
     offset = (pageNum-1)*40
     html = bitcointalk.requestBoardPage(boardId, offset)
@@ -105,11 +163,11 @@ def scrapeMember(memberId):
     return _scrape('member', memberId)
 
 
-def scrapeMessages(topicId, pageNum):
+def scrapeMessages(topicID, pageNum):
     """Scrape all messages on the specified topic, page combination."""
     """CAVEAT: Messages are not memoized."""
     offset = (pageNum-1)*20
-    html = bitcointalk.requestTopicPage(topicId, offset)
+    html = bitcointalk.requestTopicPage(topicID, offset)
     # _saveToFile(html, "topicpage", "{0}.{1}".format(topicId, offset))
     data = bitcointalk.parseTopicPage(html)
     data = data['messages']
@@ -117,9 +175,18 @@ def scrapeMessages(topicId, pageNum):
     return data
 
 
-def scrapeTopic(topicId):
+def scrapeTopic(topicID):
     """Scrape information on the specified topic."""
-    return _scrape('topic', topicId)
+    html = bitcointalk.requestTopicPageAll(topicID)
+    data = bitcointalk.parseTopicPage(html)
+    messages = data.pop('messages')
+    pg.insertMessages(messages)
+
+    if topicID not in memo["topics"]:
+        pg.insertTopic(data)
+        memo.add(topicID)
+
+    return data
 
 
 class MemoizerTest(unittest.TestCase):

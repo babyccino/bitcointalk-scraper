@@ -22,13 +22,14 @@ countRequested = 0
 interReqTime = 2
 lastReqTime = None
 
-nltk.download('stopwords')
-sr = nltk.corpus.stopwords.words('english')
-lmdict = pandas.read_excel(os.path.join(os.getcwd(), 'LoughranMcDonald_MasterDictionary_2014.xlsx'))
-neg_words = lmdict.loc[lmdict.Negative != 0, 'Word'].str.lower().unique()
-pos_words = lmdict.loc[lmdict.Positive != 0, 'Word'].str.lower().unique()
+#nltk.download('stopwords')
+#sr = nltk.corpus.stopwords.words('english')
+#lmdict = pandas.read_excel(os.path.join(os.getcwd(), 'LoughranMcDonald_MasterDictionary_2014.xlsx'))
+#neg_words = lmdict.loc[lmdict.Negative != 0, 'Word'].str.lower().unique()
+#pos_words = lmdict.loc[lmdict.Positive != 0, 'Word'].str.lower().unique()
 
 def computeSentiment(text):
+    return 1
     # Tokenize and remove stop words
     tokens = []
     for t in nltk.regexp_tokenize(text.lower(), '[a-z]+'):
@@ -64,7 +65,16 @@ def _request(payloadString):
         time.sleep(timeToSleep)
     logging.info("Issuing request for the following payload: {0}".format(
         payloadString))
-    r = requests.get("{0}?{1}".format(baseUrl, payloadString))
+    r = {}
+    for i in range(0, 20):
+        try:
+            r = requests.get("{0}?{1}".format(baseUrl, payloadString))
+            break
+        except Exception as e:
+            if i == 19: 
+                raise e
+            time.sleep(1)
+            continue
     lastReqTime = time.time()
     countRequested += 1
     if r.status_code == requests.codes.ok:
@@ -302,9 +312,14 @@ def parseTopicPage(html, todaysDate=datetime.utcnow().date()):
 
             # Extract the content
             corePost = innerPost.cssselect("div.post")[0]
-            m['content'] = lxml.html.tostring(corePost).strip()[18:-6]
+            for child in corePost.iterchildren():
+                if (child.tag == "div" and 'class' in child.attrib and
+                    (child.attrib['class'] == 'quoteheader' or
+                        child.attrib['class'] == 'quote')):
+                    corePost.remove(child)
+            m['content_no_quote_no_html'] = corePost.text_content()
 
-            m['sentiment'] = computeSentiment(m['content'])
+            m['sentiment'] = computeSentiment(m['content_no_quote_no_html'])
 
             messages.append(m)
 

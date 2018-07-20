@@ -78,6 +78,9 @@ def _insertSingle(datum, tableLabel):
 
 def _insertBatch(data, tableLabel):
     """Load a batch of rows to the database."""
+    if not data:
+        return
+
     table = tables[tableLabel]
     cursor = dictCursor()
     dataFields = data[0].keys()
