@@ -187,7 +187,7 @@ def scrapeTopic(topicID):
 
     if topicID not in memo["topics"]:
         pg.insertTopic(data)
-        memo.add(topicID)
+        memo["topics"].add(topicID)
 
     return data
 
